@@ -1,4 +1,4 @@
-package client
+package main
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	addr := ":8080"
+	addr := "127.0.0.1:8080"
 	err := runClient(addr)
 	if err != nil {
 		logrus.Fatal(err)

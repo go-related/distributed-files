@@ -3,6 +3,7 @@ package client
 import (
 	"crypto/rand"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"net"
 )
 
@@ -33,7 +34,7 @@ func (cl *Client) SendRandomSizeFile(size int) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to send file")
 	}
-
+	logrus.WithField("size", size).Infof("sending a file to server")
 	return nil
 }
 

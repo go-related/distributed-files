@@ -8,8 +8,10 @@ build-client:
 	go build -o ./bin/fileagent cmd/client/main.go
 
 run: build
+	chmod +x ./bin/fileserver
 	./bin/fileserver
 
 run-client: build-client
+	chmod +x ./bin/fileagent
 	./bin/fileagent
 
