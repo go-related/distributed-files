@@ -34,7 +34,13 @@ func (cl *Client) SendRandomSizeFile(size int) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to send file")
 	}
-	logrus.WithField("size", size).Infof("sending a file to server")
+
+	readBuffer := make([]byte, 1024)
+	_, err = cl.conn.Read(readBuffer)
+	if err != nil {
+		logrus.WithError(err).Error("failed to read from server")
+	}
+	logrus.WithField("size", size).Infof("file sent to the server, recieved: %s ", string(readBuffer))
 	return nil
 }
 
