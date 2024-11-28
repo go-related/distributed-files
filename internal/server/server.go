@@ -46,7 +46,9 @@ func (f *FileServer) StartServer() error {
 }
 
 func (f *FileServer) ReadMessageHandler(conn *net.UDPConn) {
+	// this needs to change since it's not correct
 	buffer := make([]byte, 1024)
+
 	for {
 		// read Message
 		n, addr, err := conn.ReadFromUDP(buffer)
