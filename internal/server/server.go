@@ -7,12 +7,17 @@ import (
 	"net"
 )
 
-type FileServer struct {
-	port int
+type FileStorage interface {
+	Save(sc []byte) error
 }
 
-func New(port int) *FileServer {
-	return &FileServer{port: port}
+type FileServer struct {
+	port    int
+	storage FileStorage
+}
+
+func New(port int, fs FileStorage) *FileServer {
+	return &FileServer{port: port, storage: fs}
 }
 
 func (f *FileServer) StartServer() error {
@@ -36,26 +41,29 @@ func (f *FileServer) StartServer() error {
 
 	logrus.Infof("starting server on port %d", f.port)
 
-	//clientConns := new(sync.Map)
-	// this is for the future
+	f.ReadMessageHandler(conn)
+	return nil
+}
 
+func (f *FileServer) ReadMessageHandler(conn *net.UDPConn) {
 	buffer := make([]byte, 1024)
 	for {
-		//error reading from
+		// read Message
 		n, addr, err := conn.ReadFromUDP(buffer)
 		if err != nil {
 			logrus.WithError(err).Error("error reading from UDP connection")
 			continue
 		}
 
-		// Print the received message and client address
-		message := string(buffer[:n])
-		fmt.Printf("Received '%s' from %s\n", message, addr)
+		err = f.storage.Save(buffer[:n])
+		if err != nil {
+			logrus.WithError(err).Error("error storing file")
+		}
 
-		// Respond to the client
+		// respond to the client
 		_, err = conn.WriteToUDP([]byte("Message received"), addr)
 		if err != nil {
-			fmt.Println("Error responding to client:", err)
+			logrus.WithError(err).Error("error responding to client")
 		}
 	}
 }

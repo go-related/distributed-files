@@ -5,3 +5,4 @@ build:
 
 run: build
 	./bin/fileserver
+
