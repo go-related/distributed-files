@@ -22,7 +22,7 @@ func New(serverAddr string) (*Client, error) {
 
 	return &Client{
 		conn:      conn,
-		chunkSize: 1024,
+		chunkSize: 4096,
 	}, nil
 }
 

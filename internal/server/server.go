@@ -13,12 +13,13 @@ type FileStorage interface {
 }
 
 type FileServer struct {
-	port    int
-	storage FileStorage
+	port      int
+	storage   FileStorage
+	chunkSize int
 }
 
 func New(port int, fs FileStorage) *FileServer {
-	return &FileServer{port: port, storage: fs}
+	return &FileServer{port: port, storage: fs, chunkSize: 4096}
 }
 
 func (f *FileServer) StartServer() error {
@@ -56,14 +57,14 @@ func (f *FileServer) ReadMessageHandler(conn *net.UDPConn) {
 			continue
 		}
 		receivedBytes := uint32(0)
-		chunkSize := 1024
+
 		fileBuffer := make([]byte, 0, fileSize)
 		var clientAddr *net.UDPAddr
 		counter := 0
 		for receivedBytes < fileSize {
 			remainingBytes := int(fileSize - receivedBytes)
-			currentChunkSize := chunkSize
-			if remainingBytes < chunkSize {
+			currentChunkSize := f.chunkSize
+			if remainingBytes < f.chunkSize {
 				currentChunkSize = remainingBytes // Last chunk
 			}
 
