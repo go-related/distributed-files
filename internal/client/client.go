@@ -1,9 +1,12 @@
 package client
 
 import (
+	"bytes"
 	"crypto/rand"
+	"encoding/binary"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"io"
 	"net"
 )
 
@@ -25,12 +28,21 @@ func New(serverAddr string) (*Client, error) {
 
 func (cl *Client) SendRandomSizeFile(size int) error {
 	buf := make([]byte, size)
-	read, err := rand.Read(buf)
+	_, err := rand.Read(buf)
 	if err != nil {
 		return errors.Wrap(err, "failed to populate the buffer for sending random size")
 	}
 
-	_, err = cl.conn.Write(buf[:read])
+	err = binary.Write(cl.conn, binary.LittleEndian, uint32(size))
+	if err != nil {
+		return errors.Wrap(err, "failed to send the size of the file to the server")
+	}
+
+	//
+	//_, err = cl.conn.Write(buf[:read])
+	// this will allow us more flexibility
+	reader := bytes.NewReader(buf)
+	_, err = io.Copy(cl.conn, reader)
 	if err != nil {
 		return errors.Wrap(err, "failed to send file")
 	}

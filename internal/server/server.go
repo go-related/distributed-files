@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/binary"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -46,24 +47,28 @@ func (f *FileServer) StartServer() error {
 }
 
 func (f *FileServer) ReadMessageHandler(conn *net.UDPConn) {
-	// this needs to change since it's not correct
-	buffer := make([]byte, 1024)
-
 	for {
 		// read Message
-		n, addr, err := conn.ReadFromUDP(buffer)
+		var size uint32
+		err := binary.Read(conn, binary.LittleEndian, &size)
+		if err != nil {
+			logrus.WithError(err).Error("pls send the size of the file before sending the actual file")
+			continue
+		}
+
+		buf := make([]byte, size)
+		_, clientAddr, err := conn.ReadFromUDP(buf)
 		if err != nil {
 			logrus.WithError(err).Error("error reading from UDP connection")
 			continue
 		}
 
-		err = f.storage.Save(buffer[:n])
+		err = f.storage.Save(buf)
 		if err != nil {
 			logrus.WithError(err).Error("error storing file")
 		}
-
 		// respond to the client
-		_, err = conn.WriteToUDP([]byte("Message received"), addr)
+		_, err = conn.WriteToUDP([]byte(fmt.Sprintf("Message received from: %s", clientAddr.String())), clientAddr)
 		if err != nil {
 			logrus.WithError(err).Error("error responding to client")
 		}

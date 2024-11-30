@@ -53,7 +53,8 @@ func runClient(addr string) error {
 
 		err = cl.SendRandomSizeFile(size)
 		if err != nil {
-			return err
+			fmt.Println("Error sending random size file:", err)
+			break
 		}
 
 	}
