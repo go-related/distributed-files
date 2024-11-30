@@ -68,7 +68,7 @@ func (f *FileServer) ReadMessageHandler(conn *net.UDPConn) {
 			logrus.WithError(err).Error("error storing file")
 		}
 		// respond to the client
-		_, err = conn.WriteToUDP([]byte(fmt.Sprintf("Message received from: %s", clientAddr.String())), clientAddr)
+		_, err = conn.WriteTo([]byte(fmt.Sprintf("Message received from: %s", clientAddr.String())), clientAddr)
 		if err != nil {
 			logrus.WithError(err).Error("error responding to client")
 		}
