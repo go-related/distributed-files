@@ -32,7 +32,7 @@ func (cl *Client) SendRandomSizeFile(size int) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to populate the buffer for sending random size")
 	}
-	logrus.Debug("finished writing randomly  to the file")
+	logrus.Info("finished writing randomly  to the file")
 
 	err = binary.Write(cl.conn, binary.LittleEndian, uint32(size))
 	if err != nil {
@@ -53,7 +53,7 @@ func (cl *Client) SendRandomSizeFile(size int) error {
 			return errors.Wrap(err, "failed to send file chunk")
 		}
 		counter++
-		logrus.WithField("chunk", counter).Debug("sent file chunk")
+		logrus.WithField("chunk", counter).Info("sent file chunk")
 	}
 
 	readBuffer := make([]byte, 1024)
