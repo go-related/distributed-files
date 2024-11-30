@@ -1,17 +1,16 @@
 package client
 
 import (
-	"bytes"
 	"crypto/rand"
 	"encoding/binary"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"io"
 	"net"
 )
 
 type Client struct {
-	conn net.Conn
+	conn      net.Conn
+	chunkSize int
 }
 
 func New(serverAddr string) (*Client, error) {
@@ -22,7 +21,8 @@ func New(serverAddr string) (*Client, error) {
 	}
 
 	return &Client{
-		conn: conn,
+		conn:      conn,
+		chunkSize: 1024,
 	}, nil
 }
 
@@ -32,19 +32,28 @@ func (cl *Client) SendRandomSizeFile(size int) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to populate the buffer for sending random size")
 	}
+	logrus.Debug("finished writing randomly  to the file")
 
 	err = binary.Write(cl.conn, binary.LittleEndian, uint32(size))
 	if err != nil {
 		return errors.Wrap(err, "failed to send the size of the file to the server")
 	}
 
-	//
-	//_, err = cl.conn.Write(buf[:read])
-	// this will allow us more flexibility
-	reader := bytes.NewReader(buf)
-	_, err = io.Copy(cl.conn, reader)
-	if err != nil {
-		return errors.Wrap(err, "failed to send file")
+	// in udp conn max byts are  65,535 so we need to send data chunk by chunk
+	counter := 0
+	for start := 0; start < len(buf); start += cl.chunkSize {
+		end := start + cl.chunkSize
+		if end > len(buf) {
+			end = len(buf)
+		}
+
+		// Write the chunk
+		_, err = cl.conn.Write(buf[start:end])
+		if err != nil {
+			return errors.Wrap(err, "failed to send file chunk")
+		}
+		counter++
+		logrus.WithField("chunk", counter).Debug("sent file chunk")
 	}
 
 	readBuffer := make([]byte, 1024)
