@@ -39,7 +39,7 @@ func (cl *Client) SendRandomSizeFile(size int) error {
 		return errors.Wrap(err, "failed to send the size of the file to the server")
 	}
 
-	// in udp conn max byts are  65,535 so we need to send data chunk by chunk
+	// in udp conn max bytes are  65,535, so we need to send data chunk by chunk
 	counter := 0
 	for start := 0; start < len(buf); start += cl.chunkSize {
 		end := start + cl.chunkSize
